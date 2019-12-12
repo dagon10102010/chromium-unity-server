@@ -1,0 +1,15 @@
+#vscode
+.vscode/
+
+#unity file
+Library/
+obj/
+Temp/
+**/StreamingAssets/
+**/*.dll*
+*.csproj
+*.sln
+
+#unity allow
+!**/*.meta
+!**/*.json

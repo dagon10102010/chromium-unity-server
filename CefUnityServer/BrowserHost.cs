@@ -14,6 +14,22 @@ using System.Threading.Tasks;
 
 namespace CefUnityServer
 {
+    class BoundObject
+    {
+        protected TaskRunner runner;
+        public BoundObject(TaskRunner runner)
+        {
+            this.runner = runner;
+        }
+        public void showMessage(string msg)
+        {
+            this.runner.AddTask(new SendJSEventTask(msg));
+        }
+        public void sendMessage(string gameObject,string method, string param = null)
+        {
+            this.runner.AddTask(new SendJSEventTask(gameObject,method,param));
+        }
+    }
     public class BrowserHost : IContextMenuHandler, ILifeSpanHandler
     {
         protected const int BROWSER_INIT_TIMEOUT_MS = 15000;
@@ -26,6 +42,8 @@ namespace CefUnityServer
 
         protected byte[] paintBitmap = null;
         protected int paintBufferSize = 0;
+        public string starturl = "google.com";
+        public string startsize = "1024x768";
 
         public BrowserHost(TaskRunner runner) : this(runner, new BrowserSettings())
         {
@@ -71,19 +89,22 @@ namespace CefUnityServer
             this.webBrowser = new ChromiumWebBrowser("about:blank", this.settings, this.requestContext, false);
             this.webBrowser.MenuHandler = this;
             this.webBrowser.LifeSpanHandler = this;
-            this.webBrowser.CreateBrowser();
 
+            CefSharpSettings.LegacyJavascriptBindingEnabled = true;
+            this.webBrowser.RegisterAsyncJsObject("unityCaller", new BoundObject(this.runner));
+            this.webBrowser.CreateBrowser();
+            ResizeTask rz = new ResizeTask(startsize);
             // Resize and wait for init
-            Resize(1024, 768);
+            Resize(rz.width, rz.height);
             WaitForBrowserInit();
 
             // Bind events
             this.webBrowser.Paint += WebBrowser_Paint;
             this.webBrowser.LoadError += WebBrowser_LoadError;
             this.webBrowser.LoadingStateChanged += WebBrowser_LoadingStateChanged;
-
+            
             // Load initial page (TEST / TEMP)
-            await LoadPageAsync("https://www.youtube.com/watch?v=KaOC9danxNo");
+            await LoadPageAsync(starturl);
         }
 
         public void Stop()
@@ -314,7 +335,12 @@ namespace CefUnityServer
 
             return tcs.Task;
         }
-
+        public void RunScript(string data)
+        {
+            //this.webBrowser.EvaluateScriptAsync
+            if(this.webBrowser.CanExecuteJavascriptInMainFrame)
+                this.webBrowser.ExecuteScriptAsync(data);
+        }
         public void WaitForBrowserInit()
         {
             int remainingTries = BROWSER_INIT_TIMEOUT_MS;

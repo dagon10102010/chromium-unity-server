@@ -167,6 +167,18 @@ namespace CefUnityServer
 
                     runner.AddTask(new ShutdownTask());
                     break;
+                case PipeProto.OPCODE_NAVIGATE:
+
+                    runner.AddTask(new NavigateTask(Encoding.UTF8.GetString(incomingMessage.Payload)));
+                    break;
+                case PipeProto.OPCODE_RESIZE:
+
+                    runner.AddTask(new ResizeTask(Encoding.UTF8.GetString(incomingMessage.Payload)));
+                    break;
+                case PipeProto.OPCODE_SCRIPT:
+
+                    runner.AddTask(new ExecScriptTask(Encoding.UTF8.GetString(incomingMessage.Payload)));
+                    break;
 
                 default:
 

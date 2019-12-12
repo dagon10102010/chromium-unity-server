@@ -22,7 +22,7 @@ namespace CefUnityServer
             {
                 pipeName = "default";
             }
-
+            
             // Environment prep
             Console.Title = String.Format("CEF Ingame Browser [{0}]", pipeName);
 
@@ -35,7 +35,8 @@ namespace CefUnityServer
             Program.taskRunner = new TaskRunner();
             Program.pipeServer = new PipeServer(pipeName, taskRunner);
             Program.browserHost = new BrowserHost(taskRunner);
-
+            Program.browserHost.starturl = args.Length > 1 ? args[1] : "google.com";
+            Program.browserHost.startsize = args.Length > 2 ? args[2] : "1024x768";
             // Initialize CEF browser and wait for it to be ready
             Logr.Log("Waiting for Chromium to be ready.");
 
